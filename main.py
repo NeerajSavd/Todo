@@ -8,6 +8,8 @@ SUBJECTS = ["Math", "English", "Science"]
 PRIORITY = ["Low", "Medium", "High"]
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
+customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
+customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 class ScrollableLabelButtonFrame(customtkinter.CTkScrollableFrame):
     def __init__(self, master, command=None, **kwargs):
@@ -20,9 +22,16 @@ class ScrollableLabelButtonFrame(customtkinter.CTkScrollableFrame):
         self.button_list = []
 
     def add_item(self, item):
-        image=customtkinter.CTkImage(Image.open(os.path.join(current_dir, "images", "exam.jpg")))
+        if item.priority == "Low":
+            image=customtkinter.CTkImage(Image.open(os.path.join(current_dir, "images", "green.png")))
+        elif item.priority == "Medium":
+            image=customtkinter.CTkImage(Image.open(os.path.join(current_dir, "images", "yellow.png")))
+        elif item.priority == "High":
+            image=customtkinter.CTkImage(Image.open(os.path.join(current_dir, "images", "red.png")))
         label = customtkinter.CTkLabel(self, text=str(item), image=image, compound="left", font=("Arial", 14), justify="left", padx=10, pady=5)
-        button = customtkinter.CTkButton(self, text="Edit", command=self.open_input_dialog_event)
+        button = customtkinter.CTkButton(self, text="Edit")
+        if self.command is not None:
+            button.configure(command=lambda: self.command(item))
         label.grid(row=len(self.label_list), column=0, pady=(0, 10), sticky="w")
         button.grid(row=len(self.button_list), column=1, pady=(0, 10), padx=5)
         self.label_list.append(label)
@@ -37,10 +46,10 @@ class ScrollableLabelButtonFrame(customtkinter.CTkScrollableFrame):
                 self.button_list.remove(button)
                 return
     
-    def open_input_dialog_event(self):
-        dialog = customtkinter.CTkInputDialog(text="Type in a number:", title="CTkInputDialog")
-        print("CTkInputDialog:", dialog.get_input())
-
+    # def open_input_dialog_event(self):
+    #     input_dialog = customtkinter.CTkInputDialog(text="Type in a number:", title="Status")
+    #     if input_dialog != None:
+    #         App.change_status_event(input_dialog)
 
 class App(customtkinter.CTk):
     def __init__(self):
@@ -55,7 +64,8 @@ class App(customtkinter.CTk):
         self.scrollable_label_button_frame = ScrollableLabelButtonFrame(master=self, width=500, command=self.label_button_frame_event, corner_radius=0)
         self.scrollable_label_button_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         for item in data.tasks:
-            self.scrollable_label_button_frame.add_item(item)
+            if item.status != "100":
+                self.scrollable_label_button_frame.add_item(item)
         
 
         self.new_task_frame = customtkinter.CTkFrame(self)
@@ -67,19 +77,28 @@ class App(customtkinter.CTk):
         self.title_input.grid(row=1, column=2, pady=10, padx=20, sticky="n")
         self.subject_optionmenu = customtkinter.CTkOptionMenu(master=self.new_task_frame, values=SUBJECTS)
         self.subject_optionmenu.grid(row=2, column=2, pady=10, padx=20, sticky="n")
-        self.dueDate_input = customtkinter.CTkEntry(master=self.new_task_frame, placeholder_text="Due Date")
+        self.dueDate_input = customtkinter.CTkEntry(master=self.new_task_frame, placeholder_text="Due Date (mm-dd)")
         self.dueDate_input.grid(row=3, column=2, pady=10, padx=20, sticky="n")
         self.dueTime_input = customtkinter.CTkEntry(master=self.new_task_frame, placeholder_text="Due Time")
         self.dueTime_input.grid(row=4, column=2, pady=10, padx=20, sticky="n")
         self.priority_optionmenu = customtkinter.CTkOptionMenu(master=self.new_task_frame, values=PRIORITY)
         self.priority_optionmenu.grid(row=5, column=2, pady=10, padx=20, sticky="n")
-        self.notes_input = customtkinter.CTkEntry(master=self.new_task_frame, placeholder_text="Notes")
+        self.notes_input = customtkinter.CTkEntry(master=self.new_task_frame, placeholder_text="Note")
         self.notes_input.grid(row=6, column=2, pady=10, padx=20, sticky="n")
         self.done_button = customtkinter.CTkButton(master=self.new_task_frame, text="Done", command=self.new_task_event)
         self.done_button.grid(row=7, column=2, pady=10, padx=20, sticky="n")
     
     def label_button_frame_event(self, item):
-        print(f"label button frame clicked: {item}")
+        status = customtkinter.CTkInputDialog(text=item.display(), title="Status")
+        status = status.get_input()
+        if status != None:
+            for task in data.tasks:
+                if str(task) == str(item):
+                    task.status = status
+                    data.save()
+                    if task.status == "100":
+                        self.scrollable_label_button_frame.remove_item(task)
+                    return
     
     def new_task_event(self):
         print("new task event")
@@ -87,6 +106,9 @@ class App(customtkinter.CTk):
         data.addTask(new_task)
         self.scrollable_label_button_frame.add_item(new_task)
         data.save()
+        self.title_input.delete(0, "end")
+        self.notes_input.delete(0, "end")
+
 
 if __name__ == "__main__":
     data = store.store("data.txt")

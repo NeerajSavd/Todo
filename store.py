@@ -14,15 +14,20 @@ class store:
                 newTask.id = line[0]
                 self.tasks.append(newTask)
         file.close()
+        self.tasks.sort(key=lambda x: x.dueDateTime)
     
     def addTask(self, task):
         task.id = str(self.nextId)
         self.nextId += 1
         self.tasks.append(task)
+        self.tasks.sort(key=lambda x: x.dueDateTime)
     
     def removeTask(self, task):
         self.tasks.remove(task)
         self.archived.append(task)
+    
+    def changePriority(self, task, priority):
+        task.priority = priority
     
     def save(self):
         file = open(self.path, 'w')
