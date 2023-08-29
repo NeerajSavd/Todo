@@ -16,10 +16,10 @@ class task:
         self.notes = notes
     
     def __str__(self):
-        return self.subject + " - " + self.name + "\n" + self.dueDate + " " + self.dueTime
+        return self.subject + " - " + self.name + "\n" + self.dueDate + "\t" + self.dueTime
     
     def __repr__(self):
         return self.id + ", " + self.subject + ", " + self.name + ", " + self.dueDate + ", " + self.dueTime + ", " + self.priority + ", " + self.status + ", " + self.notes
     
     def display(self):
-        return self.subject + " - " + self.name + "\n" + self.dueDate + " " + self.dueTime + "\n Priority: " + self.priority + " - Current Status: " + self.status + "\n" + self.notes
+        return self.subject + " - " + self.name + "\n" + self.dueDate + " at " + self.dueTime + "\nPriority: " + self.priority + "\nCurrent Status: " + self.status + "\n" + self.notes
